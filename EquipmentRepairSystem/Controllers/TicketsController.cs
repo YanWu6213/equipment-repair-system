@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;    
 
 namespace EquipmentRepairSystem.Controllers
 {
@@ -6,41 +7,54 @@ namespace EquipmentRepairSystem.Controllers
     [Route("[controller]")]
     public class TicketsController : ControllerBase
     {
-
+        private readonly AppDbContext _context;
+        //建構子注入AppDbContext
+        public TicketsController(AppDbContext context)
+        {
+            _context = context;
+        }
+        
         [HttpGet]
-        public Ticket GetFakeTicket()
+        // 查詢所有的Ticket
+        public async Task<ActionResult<IEnumerable<Ticket>>> GetAllTickets()
         {
-            return new Ticket
+            return await _context.Tickets.ToListAsync();
+        }
+        
+        [HttpPost]
+        // 創建新的Ticket
+        public async Task<ActionResult<Ticket>> CreateTicket(Ticket ticket)
+        {
+            _context.Tickets.Add(ticket);
+            await _context.SaveChangesAsync(); // 這行才會真正寫進硬碟
+            return ticket;
+        }
+        
+        [HttpGet("{id}")]
+        // 根據ID查詢特定的Ticket
+        public async Task<ActionResult<Ticket>> GetTicketById(int id)
+        {
+            var ticket = await _context.Tickets.FindAsync(id);
+            if (ticket == null)
             {
-                Id = 1,
-                Description = "冷氣壞了",
-                Status = "待處理",
-                RepairerName = "王小明"
-            };
+                return NotFound();
+            }
+            return ticket;
         }
 
-        [HttpGet("all")]
-        public List<Ticket> GetAllTickets()
+        [HttpDelete("{id}")]
+        // 根據ID刪除特定的Ticket
+        public async Task<IActionResult> DeleteTicket(int id)
         {
-            List<Ticket> tickets = new List<Ticket>
+            var ticket = await _context.Tickets.FindAsync(id);
+            if (ticket == null)
             {
-                new Ticket { Id = 1, Description = "冷氣壞了", Status = "待處理", RepairerName = "王小明" },
-                new Ticket { Id = 2, Description = "電腦無法開機", Status = "已處理", RepairerName = "李小華" }
-            };
-            return tickets;
+                return NotFound();
+            }
+            _context.Tickets.Remove(ticket);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
-        [HttpGet("search")]
-        public List<Ticket> SearchTickets(string name)
-        {
-            List<Ticket> allTickets = new List<Ticket>
-               {
-                   new Ticket { Id = 1, Description = "冷氣壞了", Status = "待處理", RepairerName = "王小明" },
-                   new Ticket { Id = 2, Description = "電腦無法開機", Status = "已處理", RepairerName = "李小華" }
-               };
-            var result = allTickets.Where(t => t.RepairerName.Contains(name)).ToList();
-
-            return result;
-        }
     }
 }
