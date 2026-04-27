@@ -55,6 +55,28 @@ namespace EquipmentRepairSystem.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+        [HttpPut("{id}")]
+        // 根據ID更新特定的Ticket
+        public async Task<IActionResult> UpdateTicket(int id, Ticket ticket)
+        {
+            if (id != ticket.Id)
+            {
+                return BadRequest();
+            }
+            _context.Entry(ticket).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Tickets.Any(e => e.Id == id)) return NotFound();
+                else throw;
+            }
+
+            return NoContent();
+        }
 
     }
 }
