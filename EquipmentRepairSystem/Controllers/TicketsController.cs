@@ -1,3 +1,4 @@
+using EquipmentRepairSystem.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;    
 
@@ -20,16 +21,32 @@ namespace EquipmentRepairSystem.Controllers
         {
             return await _context.Tickets.ToListAsync();
         }
-        
+
+        //[HttpPost]
+        //// 創建新的Ticket
+        //public async Task<ActionResult<Ticket>> CreateTicket(Ticket ticket)
+        //{
+        //    _context.Tickets.Add(ticket);
+        //    await _context.SaveChangesAsync(); // 這行才會真正寫進硬碟
+        //    return ticket;
+        //}
+
         [HttpPost]
-        // 創建新的Ticket
-        public async Task<ActionResult<Ticket>> CreateTicket(Ticket ticket)
+        public async Task<ActionResult<Ticket>> CreateTicket(TicketCreateDto dto)
         {
+            var ticket = new Ticket
+            {
+                Description = dto.Description,
+                Status = dto.Status,
+                RepairerName = dto.RepairerName
+            };
+
             _context.Tickets.Add(ticket);
             await _context.SaveChangesAsync(); // 這行才會真正寫進硬碟
             return ticket;
         }
-        
+
+
         [HttpGet("{id}")]
         // 根據ID查詢特定的Ticket
         public async Task<ActionResult<Ticket>> GetTicketById(int id)
